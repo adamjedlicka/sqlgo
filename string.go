@@ -23,7 +23,7 @@ func (s String) NotNull() bool { return s.notNull }
 
 func (s String) Value() string { return s.value }
 
-func (s *String) Get() interface{} {
+func (s String) Get() interface{} {
 	if s.isNull && !s.notNull {
 		return nil
 	}
@@ -36,6 +36,9 @@ func (s *String) Set(val interface{}) {
 	case *interface{}:
 		s.isNull = true
 		s.value = ""
+	case string:
+		s.isNull = false
+		s.value = val.(string)
 	case []uint8:
 		s.isNull = false
 		s.value = string(val.([]uint8))

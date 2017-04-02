@@ -41,6 +41,9 @@ func (i *Int) Set(val interface{}) {
 	case int64:
 		i.isNull = false
 		i.value = val.(int64)
+	case int:
+		i.isNull = false
+		i.value = int64(val.(int))
 	case []uint8:
 		tmp, err := strconv.ParseInt(string(val.([]uint8)), 10, 64)
 		if err == nil {

@@ -26,29 +26,46 @@ type structMap struct {
 }
 
 func mapper(val reflect.Value) (structMap, error) {
-	var elem reflect.Value
-	var typ reflect.Type
+	typ := val.Type()
 
-	if val.Type().Kind() == reflect.Ptr {
-		elem = val.Elem()
-		typ = val.Type()
-	} else {
-		return structMap{}, ErrBadArgument
+	if typ.Kind() == reflect.Ptr {
+		elem := val.Elem()
+
+		m := structMap{}
+		m.fields = make([]string, elem.NumField())
+		m.tags = make([]string, elem.NumField())
+		m.methods = make([]string, val.NumMethod())
+
+		for i := 0; i < elem.NumField(); i++ {
+			m.fields[i] = typ.Elem().Field(i).Name
+			m.tags[i] = typ.Elem().Field(i).Tag.Get("db")
+		}
+
+		for i := 0; i < val.NumMethod(); i++ {
+			m.methods[i] = typ.Method(i).Name
+		}
+
+		return m, nil
+	} else if typ.Kind() == reflect.Struct {
+		val = reflect.New(typ)
+		elem := val.Elem()
+
+		m := structMap{}
+		m.fields = make([]string, elem.NumField())
+		m.tags = make([]string, elem.NumField())
+		m.methods = make([]string, val.NumMethod())
+
+		for i := 0; i < elem.NumField(); i++ {
+			m.fields[i] = typ.Field(i).Name
+			m.tags[i] = typ.Field(i).Tag.Get("db")
+		}
+
+		for i := 0; i < val.NumMethod(); i++ {
+			m.methods[i] = reflect.PtrTo(typ).Method(i).Name
+		}
+
+		return m, nil
 	}
 
-	m := structMap{}
-	m.fields = make([]string, elem.NumField())
-	m.tags = make([]string, elem.NumField())
-	m.methods = make([]string, val.NumMethod())
-
-	for i := 0; i < elem.NumField(); i++ {
-		m.fields[i] = typ.Elem().Field(i).Name
-		m.tags[i] = typ.Elem().Field(i).Tag.Get("db")
-	}
-
-	for i := 0; i < val.NumMethod(); i++ {
-		m.methods[i] = typ.Method(i).Name
-	}
-
-	return m, nil
+	return structMap{}, ErrBadArgument
 }
