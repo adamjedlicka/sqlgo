@@ -1,5 +1,9 @@
 package sqlgo
 
+import (
+	"log"
+)
+
 type SelectQuery struct {
 	Query
 	query string
@@ -23,8 +27,8 @@ func (q SelectQuery) Where(condition string, is interface{}) SelectQuery {
 
 func (q SelectQuery) ToSQL() string { return q.query }
 
-func (q SelectQuery) Exec() Table {
-	ret := make(Table)
+func (q SelectQuery) Exec() *Table {
+	ret := NewTable()
 
 	rows, err := q.db.Query(q.query, q.args...)
 	if err != nil {
@@ -36,6 +40,7 @@ func (q SelectQuery) Exec() Table {
 	if err != nil {
 		return ret
 	}
+	ret.Types = columns
 
 	type ref interface{}
 
@@ -45,12 +50,21 @@ func (q SelectQuery) Exec() Table {
 		dataPtr[k] = &data[k]
 	}
 
+	rowIndex := 0
 	for rows.Next() {
-		rows.Scan(dataPtr...)
-
-		for k, v := range columns {
-			ret[v] = append(ret[v], *dataPtr[k].(*interface{}))
+		err := rows.Scan(dataPtr...)
+		if err != nil {
+			log.Fatal(err)
+			return ret
 		}
+
+		ret.Data = append(ret.Data, make([]interface{}, len(columns)))
+
+		for columnIndex := range columns {
+			ret.Data[rowIndex][columnIndex] = data[columnIndex]
+		}
+
+		rowIndex++
 	}
 
 	return ret

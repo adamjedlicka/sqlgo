@@ -1,4 +1,4 @@
-package types
+package sqlgo
 
 type String struct {
 	notNull bool
