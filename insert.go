@@ -82,7 +82,9 @@ func (q InsertQuery) Exec() error {
 
 	for _, data := range q.data {
 		val := reflect.ValueOf(data)
-		m, err := mapper(val)
+		direct := reflect.Indirect(val)
+
+		m, err := mapper(direct)
 		if err != nil {
 			return err
 		}
@@ -92,7 +94,7 @@ func (q InsertQuery) Exec() error {
 				// Check for matching fields
 				for i := 0; i < len(m.fields); i++ {
 					if m.fields[i] == q.columns[valueIndex] {
-						fn := reflect.ValueOf(data).Field(i).MethodByName("Get")
+						fn := direct.Field(i).MethodByName("Get")
 						res := fn.Call([]reflect.Value{})
 
 						flatData = append(flatData, res[0].Interface())
@@ -104,7 +106,7 @@ func (q InsertQuery) Exec() error {
 				// Check for matching tags
 				for i := 0; i < len(m.tags); i++ {
 					if m.tags[i] == q.columns[valueIndex] {
-						fn := reflect.ValueOf(data).Field(i).MethodByName("Get")
+						fn := direct.Field(i).MethodByName("Get")
 						res := fn.Call([]reflect.Value{})
 
 						flatData = append(flatData, res[0].Interface())
@@ -116,7 +118,7 @@ func (q InsertQuery) Exec() error {
 				// Check for matching methods
 				for i := 0; i < len(m.methods); i++ {
 					if m.methods[i] == "Get"+q.columns[valueIndex] {
-						fn := reflect.ValueOf(data).Method(i)
+						fn := direct.Method(i)
 						res := fn.Call([]reflect.Value{})
 
 						flatData = append(flatData, res[0].Interface())

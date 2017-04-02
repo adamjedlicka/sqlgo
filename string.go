@@ -51,5 +51,5 @@ func (s String) String() string {
 	if s.isNull {
 		return "NULL"
 	}
-	return s.value
+	return "\"" + s.value + "\""
 }

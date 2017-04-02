@@ -47,6 +47,9 @@ func (b *Bool) Set(val interface{}) {
 			b.isNull = false
 			b.value = tmp == 1
 		}
+	case bool:
+		b.isNull = false
+		b.value = val.(bool)
 	default:
 		// TODO
 	}

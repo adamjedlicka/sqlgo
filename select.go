@@ -42,8 +42,6 @@ func (q SelectQuery) Exec() *Table {
 	}
 	ret.Types = columns
 
-	type ref interface{}
-
 	data := make([]interface{}, len(columns))
 	dataPtr := make([]interface{}, len(columns))
 	for k := range dataPtr {
